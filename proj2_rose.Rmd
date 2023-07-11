@@ -1,0 +1,14 @@
+---
+title: "proj2"
+author: "Rose Eluvathingal Muttikkal"
+date: "2023-07-11"
+output: pdf_document
+---
+
+Viewing data
+```{r}
+Data <- read.csv("kc_house_data.csv")
+Data <- Data<-Data[, -c(1:2)] 
+
+```
+
