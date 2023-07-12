@@ -4,11 +4,99 @@ author: "Rose Eluvathingal Muttikkal"
 date: "2023-07-11"
 output: pdf_document
 ---
+```{r}
+library(ggplot2)
+library(faraway)
+```
 
-Viewing data
+
+Data wrangling
 ```{r}
 Data <- read.csv("kc_house_data.csv")
 Data <- Data<-Data[, -c(1:2)] 
 
+set.seed(6021)
+sample.data <- sample.int(nrow(Data), floor(0.50*nrow(Data)), replace=F)
+train <- Data[sample.data,]
+test <- Data[-sample.data,]
 ```
 
+SLRs --> identify numeric relationship - living, above, living15, lot15 (looks like real linear realtionship)
+```{r}
+options(scipen=999)
+dp4 <- ggplot2::ggplot(train, aes(x=yr_built,y=price))+ 
+  geom_point()+ 
+  geom_smooth(method = "lm", se=FALSE)+ 
+  labs(x="Year Built", y="Price", title="Scatterplot of Price against Year Built")
+dp4
+```
+Check multicollinearity 
+
+sqft_living --> sqft_above, sqft_liviing15
+sqft_lot --> sqft_lot15
+```{r}
+quant <- train[, -c(2:3)] 
+quant <- quant[, -c(4:8)] 
+quant <- quant[, -c(7:8)] 
+quant <- quant[, -c(7:8)] 
+round(cor(quant[,-1]),3) 
+```
+VIFs (only quant) --> too highly correlated to compute, combine multiple into one, get rid of neighbors
+
+```{r}
+all<-lm(price~., data=quant) 
+faraway::vif(all) 
+```
+Redo VIF + correlation matrix after getting rid of neighbors info
+Redo VIF + correlation matrix after combining
+Redo VIF + correlation matrix after combining + getting rid of neighbord
+
+Model selection - All (model 1)
+
+--new variable categories
+```{r}
+##make discrete categories
+train$bedrooms = factor(train$bedrooms)
+train$bathrooms = factor(train$bathrooms)
+train$floors = factor(train$floors)
+train$waterfront = factor(train$waterfront)
+train$view = factor(train$view)
+train$condition = factor(train$condition)
+train$grade = factor(train$grade)
+train$grade = factor(train$grade)
+train$grade = factor(train$grade)
+train$grade = factor(train$grade)
+```
+
+
+Forward
+```{r}
+
+```
+
+Backward
+```{r}
+
+```
+
+Stepwise
+```{r}
+
+```
+
+
+Model selection - Quant (model 2)
+
+Forward
+Backward
+Stepwise
+
+Model selection - Quant with new variables (model 3)
+
+Forward
+Backward
+Stepwise
+
+
+Add categorical
+Check for interactions
