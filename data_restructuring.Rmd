@@ -5,3 +5,79 @@ date: "2023-07-13"
 output: pdf_document
 ---
 
+```{r}
+library(ggplot2)
+library(faraway)
+library(zipcodeR)
+library(tidyverse)
+```
+
+Data wrangling
+```{r}
+Data <- read.csv("kc_house_data.csv")
+Data <- Data<-Data[, -c(1:2)] 
+```
+
+Collapse categorical variables to manageable levels
+
+bed
+```{r}
+Data <- Data %>% 
+  mutate(high_bed =ifelse(bedrooms>4, "yes", "no")) 
+```
+
+bathrooms
+```{r}
+Data <- Data %>% 
+  mutate(high_bathrms =ifelse(bathrooms>4, "yes", "no")) 
+```
+
+floors
+```{r}
+Data <- Data %>% 
+  mutate(high_floor =ifelse(floors>2, "yes", "no")) 
+```
+
+view
+```{r}
+Data <- Data %>% 
+  mutate(good_view =ifelse(view>2, "yes", "no")) 
+```
+
+condition 
+```{r}
+Data <- Data %>% 
+  mutate(good_condition =ifelse(condition>2, "yes", "no")) 
+```
+
+yr_renovated (0 not, other yes)
+```{r}
+Data <- Data %>% 
+  mutate(renovated =ifelse(yr_renovated==0, "no", "yes")) 
+```
+zipcode to cities
+```{r}
+for(i in 1:length(Data$zipcode)){
+  Data$city[i] <- reverse_zipcode(Data$zipcode[i])$major_city
+}
+Data$city <- unlist(Data$city)
+```
+Factorize categorical variables
+```{r}
+Data$bedrooms_cat = factor(Data$bedrooms)
+Data$bathrooms = factor(Data$bathrooms)
+Data$floors = factor(Data$floors)
+Data$waterfront = factor(Data$waterfront)
+Data$view = factor(Data$view)
+Data$good_condition = factor(Data$good_condition)
+Data$renovated = factor(Data$renovated)
+Data$city = factor(Data$city)
+```
+
+
+```{r}
+set.seed(6021)
+sample.data <- sample.int(nrow(Data), floor(0.50*nrow(Data)), replace=F)
+Data <- Data[sample.data,]
+test <- Data[-sample.data,]
+```
