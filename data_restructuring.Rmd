@@ -89,8 +89,6 @@ Data$isEast = factor(Data$is_east)
 ystar<-log(Data$price) 
 Data<-data.frame(Data,ystar) 
 ```
-
-
 Split into train + test
 ```{r}
 set.seed(6021) 
@@ -166,11 +164,6 @@ regnull <- lm(ystar~1, data=whole)
 regfull <- lm(ystar~., data=whole) 
 step(regnull, scope=list(lower=regnull, upper=regfull), direction="both")
 ```
-
-```{r}
-which(colnames(whole)=="sqft_above")
-```
-
 using model selection criteria - not useful
 ```{r}
 allreg <- leaps::regsubsets(price ~., data=whole, nbest=1) 
@@ -371,7 +364,7 @@ leverage -
 ```{r}
 hii<-lm.influence(result)$hat ##leverages 
 ext.student<-rstudent(result) ##ext studentized res
-n<-nrow(Data) 
+n<-nrow(train) 
 p<- 13 
 leverage <- sort(hii[hii>2*p/n], decreasing = TRUE)
 leverage_10 <- leverage[1:10]
@@ -383,6 +376,44 @@ outliers <- sort(ext.student[abs(ext.student)>3], decreasing = TRUE)
 outliers_10 <- outliers[1:10]
 outliers_10
 ```
+DFFITS
+```{r}
+DFFITS<-dffits(result) 
+DFFITS <- sort(DFFITS[abs(DFFITS)>2*sqrt(p/n)], decreasing = TRUE)
+DFFITS_10 <- DFFITS[1:10]
+DFFITS_10
+```
+
+```{r}
+##compute yhat and yhat(i) for the influential obs anove 
+y<-train$ystar 
+yhat<-y-result$res 
+del.res<-result$res/(1-hii) 
+##deleted residual 
+yhat.i<-y-del.res 
+##yhat(i) ##compare yhat, yhat(i), and compute their difference for the states found above
+c_bind <- cbind(yhat,yhat.i, yhat-yhat.i)[abs(DFFITS)>2*sqrt(p/n),] 
+c_bind <- as.data.frame(c_bind)
+c_bind<-c_bind%>% 
+  arrange(desc(V3)) 
+c_bind
+```
+Mean Squared Error - M1
+```{r}
+data <- data.frame(pred = predict(result, newdata = test), actual = test$ystar)
+mean((data$actual - data$pred)^2)
+```
+```{r}
+summary(result)
+```
+
+Residual plot
+```{r}
+par(mfrow = c(2, 2)) 
+plot(result) 
+```
+
+
 
 
 
