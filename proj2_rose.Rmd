@@ -34,7 +34,6 @@ dp4
 ```
 Check multicollinearity 
 
-bathrooms --> sqft_living
 sqft_living --> sqft_above, sqft_liviing15
 sqft_lot --> sqft_lot15
 ```{r}
@@ -48,7 +47,7 @@ VIFs (only quant) --> too highly correlated to compute, combine multiple into on
 
 ```{r}
 all<-lm(price~., data=quant) 
-faraway::vif(all) 
+#faraway::vif(all) 
 ```
 Redo VIF + correlation matrix after getting rid of neighbors info
 Redo VIF + correlation matrix after combining
@@ -59,18 +58,10 @@ Model selection - All (model 1)
 COLLAPSING --> categorical predictors
 bedrooms 
 ```{r}
-ggplot2::ggplot(train, aes(x=bedrooms,y=price))+ 
+ggplot2::ggplot(train, aes(x=grade,y=price))+ 
   geom_point()+ 
   geom_smooth(method = "lm", se=FALSE)+ 
-  labs(x="Bedrooms", y="Price", title="Scatterplot of Price against Bedrooms")
-ggplot2::ggplot(train, aes(x=bathrooms,y=price))+ 
-  geom_point()+ 
-  geom_smooth(method = "lm", se=FALSE)+ 
-  labs(x="Bathrooms", y="Price", title="Scatterplot of Price against Bathrooms")
-ggplot2::ggplot(train, aes(x=floors,y=price))+ 
-  geom_point()+ 
-  geom_smooth(method = "lm", se=FALSE)+ 
-  labs(x="Floors", y="Price", title="Scatterplot of Price against Floors")
+  labs(x="Grade", y="Price", title="Scatterplot of Price against Grade")
 ```
 
 bathrooms
@@ -104,6 +95,15 @@ for(i in 1:length(train$zipcode)){
 
 train$city <- unlist(train$city)
 ```
+
+```{r}
+reverse_zipcode(98125)#$major_city
+reverse_zipcode(98028)
+reverse_zipcode(98136)
+reverse_zipcode(98074)
+```
+
+
 
 ```{r}
 write.csv(train, "/Users/rosee.m./Desktop/bookmarks/linear_models_ds/lm_project2/city.csv", row.names=TRUE)
