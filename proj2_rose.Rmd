@@ -34,7 +34,6 @@ dp4
 ```
 Check multicollinearity 
 
-bathrooms --> sqft_living
 sqft_living --> sqft_above, sqft_liviing15
 sqft_lot --> sqft_lot15
 ```{r}
