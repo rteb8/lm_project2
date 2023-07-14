@@ -62,22 +62,181 @@ for(i in 1:length(Data$zipcode)){
 }
 Data$city <- unlist(Data$city)
 ```
+
 Factorize categorical variables
 ```{r}
-Data$bedrooms_cat = factor(Data$bedrooms)
-Data$bathrooms = factor(Data$bathrooms)
-Data$floors = factor(Data$floors)
+Data$high_bed = factor(Data$high_bed)
+Data$high_bathrms = factor(Data$high_bathrms)
+Data$high_floor = factor(Data$high_floor)
 Data$waterfront = factor(Data$waterfront)
-Data$view = factor(Data$view)
+Data$good_view = factor(Data$good_view)
 Data$good_condition = factor(Data$good_condition)
 Data$renovated = factor(Data$renovated)
 Data$city = factor(Data$city)
 ```
 
-
+Sqft → living + lot
 ```{r}
-set.seed(6021)
-sample.data <- sample.int(nrow(Data), floor(0.50*nrow(Data)), replace=F)
-Data <- Data[sample.data,]
-test <- Data[-sample.data,]
+Data <- Data %>% 
+  mutate(sqft_combined = sqft_living+sqft_lot) 
 ```
+
+Neighbor → combined
+```{r}
+Data <- Data %>% 
+  mutate(combined15 = sqft_living15+sqft_lot15) 
+```
+
+
+Split into train + test
+```{r}
+set.seed(6021) 
+##evenly split data into train and test sets 
+sample.data<-sample.int(nrow(Data), floor(.50*nrow(Data)), replace = F) 
+train<-Data[sample.data, ] 
+test<-Data[-sample.data, ] 
+```
+
+Quant data set
+```{r}
+D3<-train%>% 
+  select(lat) 
+D4<-train%>% 
+  select(long) 
+D5<-train%>% 
+  select(yr_built) 
+D6<-train%>% 
+  select(sqft_combined) 
+D7<-train%>% 
+  select(grade) 
+D8<-train%>% 
+  select(price) 
+D9<-train%>% 
+  select(combined15) 
+
+quant<-bind_cols(D8, D3, D4, D5, D6, D7, D9)
+head(quant) 
+  
+```
+
+QUANT --> Multicolinearity
+```{r}
+round(cor(quant[,-1]),3)
+```
+QUANT --> VIFS 
+```{r}
+all<-lm(price~., data=quant) 
+faraway::vif(all) 
+```
+
+Whole data set
+```{r}
+D3<-train%>% 
+  select(bedrooms) 
+D4<-train%>% 
+  select(city) 
+D5<-train%>% 
+  select(renovated) 
+D6<-train%>% 
+  select(good_condition) 
+D7<-train%>% 
+  select(good_view) 
+D8<-train%>% 
+  select(waterfront) 
+D9<-train%>% 
+  select(high_bathrms) 
+D10<-train%>% 
+  select(high_bed) 
+
+whole<-data.frame(quant, D3, D4, D5, D6, D7, D9, D10)
+head(whole) 
+```
+
+WHOLE - mine
+
+Forward
+```{r}
+##intercept only model 
+regnull <- lm(price~1, data=whole) 
+##model with all predictors 
+regfull <- lm(price~., data=whole) 
+step(regnull, scope=list(lower=regnull, upper=regfull), direction="forward") 
+```
+
+Backward
+```{r}
+##intercept only model 
+regnull <- lm(price~1, data=whole) 
+##model with all predictors 
+regfull <- lm(price~., data=whole) 
+step(regfull, scope=list(lower=regnull, upper=regfull), direction="backward")
+```
+
+
+Stepwise
+```{r}
+##intercept only model 
+regnull <- lm(price~1, data=whole) 
+##model with all predictors 
+regfull <- lm(price~., data=whole) 
+step(regnull, scope=list(lower=regnull, upper=regfull), direction="both")
+```
+
+WHOLE - WHOLE
+
+Forward
+```{r}
+##intercept only model 
+regnull <- lm(price~1, data=train) 
+##model with all predictors 
+regfull <- lm(price~., data=train) 
+step(regnull, scope=list(lower=regnull, upper=regfull), direction="forward") 
+```
+
+Backward
+```{r}
+##intercept only model 
+regnull <- lm(price~1, data=train) 
+##model with all predictors 
+regfull <- lm(price~., data=train) 
+step(regfull, scope=list(lower=regnull, upper=regfull), direction="backward")
+```
+
+Step
+```{r}
+##intercept only model 
+regnull <- lm(price~1, data=train) 
+##model with all predictors 
+regfull <- lm(price~., data=train) 
+step(regnull, scope=list(lower=regnull, upper=regfull), direction="both")
+```
+
+
+QAUNT ONLY
+Forward
+```{r}
+##intercept only model 
+regnull <- lm(price~1, data=quant) 
+##model with all predictors 
+regfull <- lm(price~., data=quant) 
+step(regnull, scope=list(lower=regnull, upper=regfull), direction="forward") 
+```
+
+Backward
+```{r}
+##intercept only model 
+regnull <- lm(price~1, data=quant) 
+##model with all predictors 
+regfull <- lm(price~., data=quant) 
+step(regfull, scope=list(lower=regnull, upper=regfull), direction="backward")
+```
+
+Step
+```{r}
+##intercept only model 
+regnull <- lm(price~1, data=quant) 
+##model with all predictors 
+regfull <- lm(price~., data=quant) 
+step(regnull, scope=list(lower=regnull, upper=regfull), direction="both")
+```
+
