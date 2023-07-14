@@ -114,7 +114,7 @@ D8<-train%>%
 D9<-train%>% 
   select(combined15) 
 
-quant<-bind_cols(D8, D3, D4, D5, D6, D7, D9)
+quant<-bind_cols(D8,D3, D4, D5, D6, D7, D9)
 head(quant) 
   
 ```
@@ -154,25 +154,6 @@ head(whole)
 
 WHOLE - mine
 
-Forward
-```{r}
-##intercept only model 
-regnull <- lm(price~1, data=whole) 
-##model with all predictors 
-regfull <- lm(price~., data=whole) 
-step(regnull, scope=list(lower=regnull, upper=regfull), direction="forward") 
-```
-
-Backward
-```{r}
-##intercept only model 
-regnull <- lm(price~1, data=whole) 
-##model with all predictors 
-regfull <- lm(price~., data=whole) 
-step(regfull, scope=list(lower=regnull, upper=regfull), direction="backward")
-```
-
-
 Stepwise
 ```{r}
 ##intercept only model 
@@ -183,24 +164,6 @@ step(regnull, scope=list(lower=regnull, upper=regfull), direction="both")
 ```
 
 WHOLE - WHOLE
-
-Forward
-```{r}
-##intercept only model 
-regnull <- lm(price~1, data=train) 
-##model with all predictors 
-regfull <- lm(price~., data=train) 
-step(regnull, scope=list(lower=regnull, upper=regfull), direction="forward") 
-```
-
-Backward
-```{r}
-##intercept only model 
-regnull <- lm(price~1, data=train) 
-##model with all predictors 
-regfull <- lm(price~., data=train) 
-step(regfull, scope=list(lower=regnull, upper=regfull), direction="backward")
-```
 
 Step
 ```{r}
@@ -213,23 +176,6 @@ step(regnull, scope=list(lower=regnull, upper=regfull), direction="both")
 
 
 QAUNT ONLY
-Forward
-```{r}
-##intercept only model 
-regnull <- lm(price~1, data=quant) 
-##model with all predictors 
-regfull <- lm(price~., data=quant) 
-step(regnull, scope=list(lower=regnull, upper=regfull), direction="forward") 
-```
-
-Backward
-```{r}
-##intercept only model 
-regnull <- lm(price~1, data=quant) 
-##model with all predictors 
-regfull <- lm(price~., data=quant) 
-step(regfull, scope=list(lower=regnull, upper=regfull), direction="backward")
-```
 
 Step
 ```{r}
