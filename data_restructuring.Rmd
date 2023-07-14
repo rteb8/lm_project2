@@ -10,6 +10,7 @@ library(ggplot2)
 library(faraway)
 library(zipcodeR)
 library(tidyverse)
+library(gridExtra) 
 ```
 
 Data wrangling
@@ -157,8 +158,7 @@ head(whole)
 ```
 
 WHOLE - mine
-
-Stepwise --> THIS IS OUR INTIAL FULL MODEL
+Stepwise --> OUR INTIAL FULL MODEL
 ```{r}
 ##intercept only model 
 regnull <- lm(ystar~1, data=whole) 
@@ -172,7 +172,6 @@ which(colnames(whole)=="sqft_above")
 ```
 
 using model selection criteria - not useful
-
 ```{r}
 allreg <- leaps::regsubsets(price ~., data=whole, nbest=1) 
 summary(allreg) 
@@ -183,7 +182,6 @@ coef(allreg, which.min(summary(allreg)$bic))
 ```
 
 WHOLE - WHOLE - not using
-
 Step
 ```{r}
 ##intercept only model 
@@ -192,9 +190,7 @@ regnull <- lm(price~1, data=train)
 regfull <- lm(price~., data=train) 
 step(regnull, scope=list(lower=regnull, upper=regfull), direction="both")
 ```
-
 QAUNT ONLY
-
 Step
 ```{r}
 ##intercept only model 
@@ -203,9 +199,7 @@ regnull <- lm(price~1, data=quant)
 regfull <- lm(price~., data=quant) 
 step(regnull, scope=list(lower=regnull, upper=regfull), direction="both")
 ```
-
 CAT ONLY
-
 CAT data set
 ```{r}
 D3<-train%>% 
@@ -236,8 +230,6 @@ regnull <- lm(price~1, data=cat)
 regfull <- lm(price~., data=cat) 
 step(regnull, scope=list(lower=regnull, upper=regfull), direction="both")
 ```
-
-
 Checking AICs of all candidate models - may not be usefl
 ```{r}
 model1 <- lm(price ~ sqft_living + city + grade + yr_built + good_view + high_bathrms + lat + bedrooms + long + sqft_basement + high_bed + renovated, data = train)
@@ -250,7 +242,6 @@ model4 <- lm(price ~ sqft_living + sqft_lot15 + grade + high_bathrms + bedrooms 
 
 model5 <- lm(price ~ sqft_living + sqft_lot15 + grade + high_bathrms + high_bed + city, data = train)
 ```
-
 No long + lat - may not be useful
 ```{r}
 model1 <- lm(price ~ sqft_living + city + grade + yr_built + good_view + high_bathrms + bedrooms + sqft_basement + renovated, data = train) #high bed repeating
@@ -284,7 +275,6 @@ summary(model1)
 ##check dummy coding 
 contrasts(Data$city) 
 ```
-
 Residual plots --> to help determine log transformation
 ```{r}
 result<-lm(price~sqft_living + is_north + good_view + grade + yr_built + high_bathrms + bedrooms + renovated + high_bed + sqft_lot15 + is_east + sqft_basement + sqft_lot, data=train) 
@@ -302,4 +292,97 @@ par(mfrow = c(2, 2))
 plot(result.ystar) 
 ```
 
-Assessing full models
+Assessing full model
+```{r}
+result<-lm(ystar ~ grade + is_north + sqft_living + yr_built + 
+    good_view + sqft_lot + good_condition + renovated + is_east + 
+    high_bathrms + high_bed + sqft_basement, data=train) 
+summary(result)
+```
+
+Checking for interactions - not needed
+GRADE
+```{r}
+options(scipen=999)
+ggplot2::ggplot(train, aes(x=grade, y=ystar, color=is_north))+ 
+  geom_point()+ 
+  geom_smooth(method=lm, se=FALSE)+ 
+  labs(title="Scatterplot of Log Transformed Price against Grade, by Direction (North/South)")+ 
+  geom_text(label=rownames(train)) 
+```
+```{r}
+ggplot2::ggplot(train, aes(x=grade, y=ystar, color=is_east))+ 
+  geom_point()+ 
+  geom_smooth(method=lm, se=FALSE)+ 
+  labs(title="Scatterplot of Log Transformed Price against Grade, by Direction (East/West)")+ 
+  geom_text(label=rownames(train)) 
+```
+```{r}
+ggplot2::ggplot(train, aes(x=grade, y=ystar, color=good_view))+ 
+  geom_point()+ 
+  geom_smooth(method=lm, se=FALSE)+ 
+  labs(title="Scatterplot of Log Transformed Price against Grade, by View")+ 
+  geom_text(label=rownames(train)) 
+```
+```{r}
+ggplot2::ggplot(train, aes(x=grade, y=ystar, color=good_condition))+ 
+  geom_point()+ 
+  geom_smooth(method=lm, se=FALSE)+ 
+  labs(title="Scatterplot of Log Transformed Price against Grade, by Condition")+ 
+  geom_text(label=rownames(train)) 
+```
+```{r}
+ggplot2::ggplot(train, aes(x=grade, y=ystar, color=renovated))+ 
+  geom_point()+ 
+  geom_smooth(method=lm, se=FALSE)+ 
+  labs(title="Scatterplot of Log Transformed Price against Grade, by Renovation Status")+ 
+  geom_text(label=rownames(train)) 
+```
+
+```{r}
+##model with interaction 
+result.int<-lm(ystar ~ grade + is_north + sqft_living + yr_built + 
+    good_view + sqft_lot + good_condition + renovated + is_east + 
+    high_bathrms + high_bed + sqft_basement + grade*is_north + grade*good_view + grade*good_condition + grade*renovated + grade*is_east + grade*high_bathrms + grade*high_bed + sqft_living*is_north + sqft_living*good_view + sqft_living*good_condition + sqft_living*renovated + sqft_living*is_east + sqft_living*high_bathrms + sqft_living*high_bed + yr_built*is_north + yr_built*good_view + yr_built*good_condition + yr_built*renovated + yr_built*is_east + yr_built*high_bathrms + yr_built*high_bed + sqft_basement*is_north +  sqft_basement*good_view + sqft_basement*good_condition + sqft_basement*renovated + sqft_basement*is_east + sqft_basement*high_bathrms + sqft_basement*high_bed, data = train) 
+summary(result.int) 
+```
+General Linear F-test 
+
+Fail to reject null, Use reduced
+```{r}
+reduced<-lm(ystar ~ grade + is_north + sqft_living + yr_built + 
+    good_view + sqft_lot + good_condition + renovated + is_east + 
+    high_bathrms + high_bed + sqft_basement + grade*is_north + grade*good_condition + grade*high_bed + sqft_living*is_north + sqft_living*good_view + sqft_living*good_condition + sqft_living*high_bathrms + sqft_living*high_bed + yr_built*is_north + yr_built*good_view + yr_built*good_condition + yr_built*renovated + yr_built*is_east + sqft_basement*is_north +  sqft_basement*good_view + sqft_basement*high_bathrms + sqft_basement*high_bed, data = train) 
+##general linear F test to compare reduced model with full model 
+anova(reduced, result.int) 
+```
+NEW MODEL (considering interactions) - not important
+```{r}
+summary(reduced)
+```
+General linear F-test --> MLR
+```{r}
+reduced2<-lm(ystar ~is_north + sqft_living + yr_built + 
+    good_view + sqft_lot + good_condition + renovated + is_east + high_bed + sqft_basement + grade*is_north + grade*good_condition + sqft_living*is_north + sqft_living*good_view + sqft_living*good_condition + yr_built*is_north + yr_built*good_view + yr_built*good_condition + yr_built*renovated + yr_built*is_east + sqft_basement *is_north +  sqft_basement*good_view + sqft_basement*renovated, data = train) 
+anova(reduced, reduced2) 
+```
+
+leverage - 
+```{r}
+hii<-lm.influence(result)$hat ##leverages 
+ext.student<-rstudent(result) ##ext studentized res
+n<-nrow(Data) 
+p<- 13 
+leverage <- sort(hii[hii>2*p/n], decreasing = TRUE)
+leverage_10 <- leverage[1:10]
+leverage_10 
+```
+externally studentized - outliers
+```{r}
+outliers <- sort(ext.student[abs(ext.student)>3], decreasing = TRUE)
+outliers_10 <- outliers[1:10]
+outliers_10
+```
+
+
+
